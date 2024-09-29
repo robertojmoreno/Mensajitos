@@ -1,14 +1,23 @@
 const Report = require('../models/Report');
 const Message = require('../models/Message');
+const User = require('../models/User');
 
 exports.createReport = async (req, res) => {
   try {
-    const { messageId, reason } = req.body;
+    const { messageId, reason, description } = req.body;
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ message: 'Mensaje no encontrado' });
+    }
+
     const report = new Report({
       reporter: req.user._id,
+      reportedUser: message.creator,
       message: messageId,
-      reason
+      reason,
+      description
     });
+
     await report.save();
     res.status(201).json({ message: 'Reporte creado exitosamente' });
   } catch (error) {
@@ -20,6 +29,7 @@ exports.getReports = async (req, res) => {
   try {
     const reports = await Report.find()
       .populate('reporter', 'name')
+      .populate('reportedUser', 'name')
       .populate('message', 'content');
     res.json(reports);
   } catch (error) {
@@ -29,8 +39,15 @@ exports.getReports = async (req, res) => {
 
 exports.updateReportStatus = async (req, res) => {
   try {
-    const { reportId, status } = req.body;
-    const report = await Report.findByIdAndUpdate(reportId, { status }, { new: true });
+    const { reportId, status, moderatorNotes } = req.body;
+    const report = await Report.findByIdAndUpdate(reportId, 
+      { 
+        status, 
+        moderatorNotes,
+        resolvedBy: req.user._id 
+      }, 
+      { new: true }
+    );
     res.json(report);
   } catch (error) {
     res.status(400).json({ message: error.message });

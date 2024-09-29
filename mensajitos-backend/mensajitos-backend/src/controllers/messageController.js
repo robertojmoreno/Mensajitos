@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
+const { bucket } = require('../config/firebaseConfig');
 
 exports.getAllMessages = async (req, res) => {
   try {
@@ -26,16 +27,44 @@ exports.getAllMessages = async (req, res) => {
 };
 
 exports.createMessage = async (req, res) => {
-  const message = new Message({
-    content: req.body.content,
-    type: req.body.type,
-    category: req.body.category,
-    creator: req.user._id // Asumimos que el middleware de autenticación añade el usuario a req
-  });
-
   try {
-    const newMessage = await message.save();
-    res.status(201).json(newMessage);
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se ha subido ningún archivo' });
+    }
+
+    const file = req.file;
+    const fileName = Date.now() + '-' + file.originalname;
+    const fileUpload = bucket.file(fileName);
+
+    const blobStream = fileUpload.createWriteStream({
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
+
+    blobStream.on('error', (error) => {
+      res.status(500).json({ message: 'Error al subir el archivo' });
+    });
+
+    blobStream.on('finish', async () => {
+      // Hacer público el archivo
+      await fileUpload.makePublic();
+
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+
+      const message = new Message({
+        content: req.body.content,
+        type: file.mimetype.startsWith('image') ? 'image' : 'video',
+        category: req.body.category,
+        creator: req.user._id,
+        mediaUrl: publicUrl
+      });
+
+      await message.save();
+      res.status(201).json(message);
+    });
+
+    blobStream.end(file.buffer);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

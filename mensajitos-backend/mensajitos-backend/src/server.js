@@ -13,6 +13,7 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const contributionRoutes = require('./routes/contributionRoutes');
 const adRoutes = require('./routes/adRoutes');
 const followRoutes = require('./routes/followRoutes');
+const userRoutes = require('./routes/userRoutes');
 // Importar el middleware de manejo de errores
 const errorHandler = require('./middleware/errorMiddleware');
 
@@ -49,6 +50,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/contributions', contributionRoutes);
 app.use('/api/ads', adRoutes);
 app.use('/api/follow', followRoutes);
+app.use('/api/users', userRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
@@ -73,6 +75,22 @@ app.get('/', (req, res) => {
 
 // Middleware de manejo de errores (debe ir después de todas las rutas)
 app.use(errorHandler);
+
+// Incluir rutas para moderación
+const moderationRoutes = require('./routes/moderationRoutes');
+const profanityFilter = require('./middleware/profanityFilter');
+
+// Middleware global para filtrar palabras ofensivas
+app.use(profanityFilter);
+
+// Rutas
+app.use('/api/moderation', moderationRoutes);
+
+// Incluir rutas para análisis
+const analyticsRoutes = require('./routes/analyticsRoutes');
+
+// Rutas
+app.use('/api/analytics', analyticsRoutes);
 
 // Iniciar el servidor
 const PORT = process.env.PORT || 3000;

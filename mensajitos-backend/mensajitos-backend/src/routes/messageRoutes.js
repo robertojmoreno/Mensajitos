@@ -4,10 +4,12 @@ const router = express.Router();
 const messageController = require('../controllers/messageController');
 const authMiddleware = require('../middleware/authMiddleware');
 const validate = require('../middleware/validationMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
 router.get('/', messageController.getAllMessages);
 router.post('/', 
   authMiddleware, 
+  upload,
   [
     body('content').notEmpty().withMessage('El contenido no puede estar vacío'),
     body('type').isIn(['image', 'video']).withMessage('El tipo debe ser imagen o video'),

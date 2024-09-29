@@ -6,6 +6,11 @@ const reportSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  reportedUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   message: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Message',
@@ -13,12 +18,19 @@ const reportSchema = new mongoose.Schema({
   },
   reason: {
     type: String,
-    required: true
+    required: true,
+    enum: ['spam', 'offensive', 'inappropriate', 'other']
   },
+  description: String,
   status: {
     type: String,
     enum: ['pending', 'reviewed', 'resolved'],
     default: 'pending'
+  },
+  moderatorNotes: String,
+  resolvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }
 }, { timestamps: true });
 

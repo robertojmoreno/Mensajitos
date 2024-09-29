@@ -15,23 +15,34 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  bio: String,
+  avatar: String,
   role: {
     type: String,
     enum: ['user', 'creator', 'admin'],
     default: 'user'
   },
-  favorites: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Message'
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  fcmToken: String,
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  interests: [String],
+  creatorHistory: [{
+    week: Date,
+    rank: Number,
+    score: Number
   }],
-  following: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  badges: [{
+    type: String,
+    enum: ['active_commenter', 'frequent_sharer', 'top_liker', 'weekly_creator']
   }],
-  followers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }]
+  ranking: {
+    type: Number,
+    default: 0
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

@@ -26,6 +26,10 @@ const messageSchema = new mongoose.Schema({
   shares: {
     type: Number,
     default: 0
+  },
+  mediaUrl: {
+    type: String,
+    required: true
   }
 }, { timestamps: true });
 
